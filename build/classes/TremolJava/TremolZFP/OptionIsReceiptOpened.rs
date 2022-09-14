@@ -1,1 +1,0 @@
-TremolZFP.OptionIsReceiptOpened

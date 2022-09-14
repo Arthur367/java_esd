@@ -4,6 +4,15 @@
  */
 package esddesktop;
 
+import static esddesktop.EsdDesktop.conn;
+import static esddesktop.EsdDesktop.stmt;
+import static esddesktop.EsdDesktop.tableName;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author netbot
@@ -39,14 +48,14 @@ public class Log extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Created Invoice No", "Created Invoice Date", "Auth Headers", "EndPoint", "Request Date Time", "Request Body", "Response Type", "Response Time", "Response Body"
+                "Id", "Created Invoice No", "Created Invoice Date", "Auth Headers", "Device", "EndPoint", "Request Date Time", "Request Body", "Response Type", "Response Time", "Response Body"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -137,10 +146,50 @@ public class Log extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Log().setVisible(true);
+                Log main = new Log();
+                main.setVisible(true);
+                try {
+                    stmt = conn.createStatement();
+                    try ( ResultSet results = stmt.executeQuery("select * from " + tableName)) {
+                        ResultSetMetaData rsmd = results.getMetaData();
+                        int numberCols = rsmd.getColumnCount();
+                        for (int i = 1; i <= numberCols; i++) {
+                            //print Column Names
+                            System.out.print(rsmd.getColumnLabel(i) + "\t\t");
+                        }
+
+                        System.out.println("\n-------------------------------------------------");
+
+                        DefaultTableModel modelTable = ((DefaultTableModel) main.jTable1.getModel());
+                        while (results.next()) {
+
+                            String id = results.getString(1);
+                            String restName = results.getString(2);
+                            String cityName = results.getString(3);
+                            String headers = results.getString(4);
+                            String device = results.getString(5);
+                            String requestdate = results.getString(6);
+                            String requestdata = results.getString(7);
+                            String responseType = results.getString(8);
+                            String responseTime = results.getString(9);
+                            String responsedata = results.getString(10);
+                            String response = results.getString(11);
+                            Object[] rows = new Object[]{id, restName, cityName, headers, device, requestdate, requestdata,
+                                responseType, responseTime, responsedata, response};
+
+                            modelTable.addRow(rows);
+                        }
+
+                    }
+                    stmt.close();
+                } catch (SQLException sqlExcept) {
+                    sqlExcept.printStackTrace();
+                }
+
             }
         });
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;

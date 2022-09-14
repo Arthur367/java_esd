@@ -9,20 +9,11 @@ import TremolZFP.OptionVATClass;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import java.awt.AWTException;
-import java.awt.Image;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
-import java.awt.SystemTray;
-import java.awt.Toolkit;
-import java.awt.TrayIcon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,8 +24,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
-import java.net.ServerSocket;
-import java.net.Socket;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -42,6 +32,8 @@ import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,9 +41,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import net.sf.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -64,59 +56,71 @@ import org.json.simple.parser.ParseException;
 public class Server {
 
     private static final String USER_AGENT = "Mozilla/5.0";
-    private static final int PORT = 35040;
+    public static final int PORT = 35040;
     private static final String GET_URL = "http://localhost:" + PORT;
-    static TrayIcon trayIcon;
+    public static LocalDateTime now = LocalDateTime.now();
+    public static HttpServer server = new HttpServer() {
+        @Override
+        public void bind(InetSocketAddress isa, int i) throws IOException {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public void start() {
+
+        }
+
+        @Override
+        public void setExecutor(Executor exctr) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public Executor getExecutor() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public void stop(int i) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public HttpContext createContext(String string, HttpHandler hh) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public HttpContext createContext(String string) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public void removeContext(String string) throws IllegalArgumentException {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public void removeContext(HttpContext hc) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public InetSocketAddress getAddress() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+    };
 
     public static void main(String[] args) throws Exception {
 //      getResponse();
         createServer();
-    }
-
-    private static void sendGet() throws IOException {
-        URL obj = new URL(GET_URL);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", USER_AGENT);
-        int responseCode = con.getResponseCode();
-        System.out.println("GET ::" + responseCode);
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    con.getInputStream()
-            ));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            System.out.println(response.toString());
-        } else {
-            System.out.println("GET request not worked");
-        }
 
     }
 
-    private static void getResponse() throws Exception {
-        ServerSocket server = new ServerSocket(PORT);
-        System.out.println("Listening for connection on port " + PORT + " ....");
-        while (true) {
-            try ( Socket socket = server.accept()) {
-                Date today = new Date();
-                String httpResponse = "HTTP/1.1 200 OK\r\n\r\n" + "ESD Working " + today;
-                socket.getOutputStream()
-                        .write(httpResponse.getBytes("UTF-8"));
-            }
-        }
-    }
+    public static void createServer() throws IOException {
 
-    private static void createServer() throws IOException {
-        boolean alive = true;
-        HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+        server = HttpServer.create(new InetSocketAddress(PORT), 0);
         try {
-
-            System.out.println("Server Started at " + PORT);
-
             server.createContext("/", new StartServerResponse());
             server.createContext("/esd", new RunESDDevice());
             server.createContext("/device", new RunDevice());
@@ -126,113 +130,14 @@ public class Server {
             server.createContext("/total", new RunTotalDevice());
             server.setExecutor(null);
             server.start();
-        } catch (Exception ex) {
-            alive = false;
+            System.out.println("Server Started at " + PORT);
+            String args[] = null;
+            Tray.main(args);
+
+        } catch (IOException ex) {
+            System.out.println(ex);
         }
-        if (SystemTray.isSupported()) {
 
-            SystemTray tray = SystemTray.getSystemTray();
-            Image image = Toolkit.getDefaultToolkit().getImage("/home/netbot/NetBeansProjects/esd/src/main/java/com/mycompany/esd/logo/icon.png");
-            String path = new File("").getPath();
-            System.out.println(path);
-            
-            MouseListener mouseListener = new MouseListener() {
-
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    System.out.println("Tray Icon - Mouse clicked!");
-                }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    System.out.println("Tray Icon - Mouse entered!");
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    System.out.println("Tray Icon - Mouse exited!");
-                }
-
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    System.out.println("Tray Icon - Mouse pressed!");
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    System.out.println("Tray Icon - Mouse released!");
-                }
-            };
-
-            ActionListener exitListener = (ActionEvent e) -> {
-                System.out.println("Exiting...");
-                System.exit(0);
-            };
-
-            ActionListener stopServer = (ActionEvent e) -> {
-                server.stop(0);
-                System.out.println("Server Stopped at " + PORT);
-            };
-            ActionListener startServer = (ActionEvent e) -> {
-                server.start();
-                System.out.println("Server Started at " + PORT);
-            };
-            ActionListener restartServer = (ActionEvent e) -> {
-                System.out.println("Restart Service" + PORT);
-                String args[] = null;
-                MainFrame.frame.setVisible(true);
-            };
-            ActionListener logServer = (ActionEvent e) -> {
-                System.out.println("Restart Service" + PORT);
-                String args[] = null;
-                Log.main(args);
-            };
-            String statusS = new String();
-            if (alive) {
-                statusS = "Running";
-            } else {
-                statusS = "Dead";
-            }
-            PopupMenu popup = new PopupMenu();
-            MenuItem start = new MenuItem("Start Server");
-            MenuItem stop = new MenuItem("Stop Server");
-            MenuItem about = new MenuItem("About");
-            MenuItem restartService = new MenuItem("Restart Service");
-            MenuItem log = new MenuItem("Log");
-            MenuItem status = new MenuItem("Status:" + statusS);
-            MenuItem defaultItem = new MenuItem("Exit");
-            defaultItem.addActionListener(exitListener);
-            stop.addActionListener(stopServer);
-            start.addActionListener(startServer);
-            restartService.addActionListener(restartServer);
-            log.addActionListener(logServer);
-            popup.add(status);
-            popup.add(start);
-            popup.add(stop);
-            popup.add(restartService);
-            popup.add(log);
-            popup.add(about);
-            popup.add(defaultItem);
-
-            trayIcon = new TrayIcon(image, "ESD Tray", popup);
-
-            ActionListener actionListener = (ActionEvent e) -> {
-                trayIcon.displayMessage("Action Event",
-                        "An Action Event Has Been Performed!",
-                        TrayIcon.MessageType.INFO);
-            };
-
-            trayIcon.setImageAutoSize(true);
-            trayIcon.addActionListener(actionListener);
-            trayIcon.addMouseListener(mouseListener);
-
-            try {
-                tray.add(trayIcon);
-            } catch (AWTException e) {
-                System.err.println("TrayIcon could not be added.");
-            }
-
-        }
     }
 
     private static class StartServerResponse implements HttpHandler {
@@ -251,7 +156,7 @@ public class Server {
     private static class RunESDDevice implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange he) throws IOException {
+        public void handle(HttpExchange he) throws IOException, JsonProcessingException {
 
             try {
 
@@ -292,9 +197,8 @@ public class Server {
                 }
 
                 RequestESDSignature(_hea, obj, he);
-                
 
-            } catch (UnsupportedEncodingException | MalformedURLException | ParseException | URISyntaxException ex) {
+            } catch (UnsupportedEncodingException | MalformedURLException | ParseException | URISyntaxException | InterruptedException ex) {
                 Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -658,7 +562,8 @@ public class Server {
                     JSONObject cor = new JSONObject();
                     cor.put("error_status", res.get("message"));
                     cor.put("verify_url", "");
-
+                    EsdDesktop.insertLog(payload.get("invoice_number").toString(), payload.get("invoice_date").toString(), "POST", "dataces", hostname, now.toString(), json.toString(), "Failure", "11ms", res.toString());
+                    EsdDesktop.selectLog();
                     he.getResponseHeaders().set("Content-Type", "application/json");
                     he.sendResponseHeaders(400, cor.toString().length());
 
@@ -677,6 +582,8 @@ public class Server {
                     cor.put("cu_invoice_number", res.get("mtn"));
                     cor.put("verify_url", res.get("verificationUrl"));
                     cor.put("description", "Invoice Signed Successfully");
+                    EsdDesktop.insertLog(payload.get("invoice_number").toString(), payload.get("invoice_date").toString(), "POST", "dataces", hostname, now.toString(), json.toString(), "Sucessfull", "11ms", cor.toString());
+                    EsdDesktop.selectLog();
                     he.getResponseHeaders().set("Content-Type", "application/json");
                     he.sendResponseHeaders(200, cor.toString().length());
 
@@ -750,6 +657,11 @@ public class Server {
         JSONObject jsonR = new JSONObject();
         jsonR.put("Invoice", json);
         System.out.println(jsonR.toString());
+        try {
+            dbClass.CreateNitrite(jsonR);
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
 
         var objectMapper = new ObjectMapper();
         JSONParser parser = new JSONParser();
@@ -773,6 +685,8 @@ public class Server {
                     exe.putAll((Map) res.get("Error"));
                     cor.put("error_status", exe.get("message"));
                     cor.put("verify_url", "");
+                    EsdDesktop.insertLog(payload.get("invoice_number").toString(), payload.get("invoice_date").toString(), "POST", "ace", hostname, now.toString(), json.toString(), "Failure", "11ms", res.get("Error").toString());
+                    EsdDesktop.selectLog();
                     he.getResponseHeaders().set("Content-Type", "application/json");
                     he.sendResponseHeaders(400, cor.toString().length());
 
@@ -783,6 +697,7 @@ public class Server {
                 } else {
                     HashMap exe = new HashMap();
                     exe.putAll((Map) res.get("Existing"));
+
                     System.out.println(exe.get("TraderSystemInvoiceNumber"));
                     String cuS = payload.get("deviceno").toString() + exe.get("CommitedTimestamp").toString();
                     System.out.println(cuS);
@@ -791,11 +706,13 @@ public class Server {
                         cor.put("invoice_number", exe.get("TraderSystemInvoiceNumber"));
                         cor.put("cu_serial_number", cuS);
                         cor.put("cu_invoice_number", exe.get("ControlCode"));
-                        cor.put("verify_url", exe.get("QRCode"));
+                        cor.put("verify_url", exe.get("QRCode").toString().replaceAll("\\/", ""));
                         cor.put("description", "Invoice Signed Successfully");
                     } catch (Exception ex) {
                         System.out.println(ex);
                     }
+                    EsdDesktop.insertLog(payload.get("invoice_number").toString(), payload.get("invoice_date").toString(), "POST", "ace", hostname, now.toString(), json.toString(), "Successfull", "11ms", cor.toString());
+                    EsdDesktop.selectLog();
                     he.getResponseHeaders().set("Content-Type", "application/json");
                     he.sendResponseHeaders(200, cor.toString().length());
 
@@ -869,11 +786,11 @@ public class Server {
 
     }
 
-    private static void RequestESDSignature(Map<String, Object> headers, JSONObject payload, HttpExchange he) throws UnsupportedEncodingException, MalformedURLException, ParseException, URISyntaxException {
+    private static void RequestESDSignature(Map<String, Object> headers, JSONObject payload, HttpExchange he) throws UnsupportedEncodingException, MalformedURLException, ParseException, URISyntaxException, JsonProcessingException, IOException, InterruptedException {
 
         String token = headers.get("Authorization").toString().replaceAll("\\[", "").replaceAll("\\]", "");
         String hostname = headers.get("Hostname").toString().replaceAll("\\[", "").replaceAll("\\]", "");
-        String qrcode = payload.get("Qr_image_path").toString();
+
         List<String> array = new ArrayList<>();
         JSONArray items = JSONArray.fromObject(payload.get("items_list"));
         for (Object item : items) {
@@ -886,49 +803,50 @@ public class Server {
         payload.remove("items_list");
         payload.put("items_list", array);
         System.out.println(payload);
+
         var objectMapper = new ObjectMapper();
 
-        try {
-            String requestBody = objectMapper.writeValueAsString(payload);
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(hostname))
-                    .setHeader("Authorization", token)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                    .build();
+        String requestBody = objectMapper.writeValueAsString(payload);
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(hostname))
+                .setHeader("Authorization", token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        JSONParser parser = new JSONParser();
+        if (response.statusCode() != 200) {
+            JSONObject res = (JSONObject) parser.parse(response.body().replaceAll("\\\\", ""));
             try {
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                JSONParser parser = new JSONParser();
-                if (response.statusCode() != 200) {
-                    JSONObject res = (JSONObject) parser.parse(response.body());
-                    he.getResponseHeaders().set("Content-Type", "application/json");
-                    he.sendResponseHeaders(400, res.toString().length());
 
-                    try ( OutputStream os = he.getResponseBody()) {
-                        os.write(res.toString().getBytes());
-                        os.flush();
-                    }
-
-                } else {
-
-                    JSONObject res = (JSONObject) parser.parse(response.body().replaceAll("\\\\", ""));
-
-                    he.getResponseHeaders().set("Content-Type", "application/json");
-                    he.sendResponseHeaders(200, res.toString().length());
-
-                    try ( OutputStream os = he.getResponseBody()) {
-                        os.write(res.toString().getBytes());
-                        os.flush();
-                    }
-                }
-            } catch (IOException | InterruptedException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                EsdDesktop.insertLog(payload.get("invoice_number").toString(), payload.get("invoice_date").toString(), "POST", "esd", hostname, now.toString(), payload.toString(), "Failure", "11ms", res.toString());
+                EsdDesktop.selectLog();
+            } catch (Exception ex) {
+                System.out.println(ex);
             }
-        } catch (JsonProcessingException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+            he.getResponseHeaders().set("Content-Type", "application/json");
+            he.sendResponseHeaders(400, res.toString().length());
+
+            try ( OutputStream os = he.getResponseBody()) {
+                os.write(res.toString().getBytes());
+                os.flush();
+            }
+
+        } else {
+
+            JSONObject res = (JSONObject) parser.parse(response.body().replaceAll("\\\\", ""));
+            EsdDesktop.insertLog(payload.get("invoice_number").toString(), payload.get("invoice_date").toString(), "POST", "esd", hostname, now.toString(), payload.toString(), "Successfull", "11ms", res.toString().replaceAll("\\/", ""));
+            EsdDesktop.selectLog();
+            System.out.println(response.uri());
+            he.getResponseHeaders().set("Content-Type", "application/json");
+            he.sendResponseHeaders(200, res.toString().length());
+            try ( OutputStream os = he.getResponseBody()) {
+                os.write(res.toString().getBytes());
+                os.flush();
+            }
         }
-        File FileToRead = new File(new URI("file://MYSERVER/MYFOLDER/MYFOLDER/MYPICTURE.JPG"));
 
 //        try {
 //            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
