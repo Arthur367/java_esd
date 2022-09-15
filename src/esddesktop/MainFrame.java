@@ -87,6 +87,7 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel20 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
 
+        setTitle("ESD Desktop");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         getContentPane().setLayout(new java.awt.FlowLayout());
 
@@ -544,7 +545,7 @@ public class MainFrame extends javax.swing.JFrame {
                         }
                         System.out.println(res);
                         frame.setVisible(false);
-                        jTextField1.setText("");
+                        jTextField1.setText(" ");
                         
                     }
                     

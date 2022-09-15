@@ -5,6 +5,9 @@
 package esddesktop;
 
 import com.sun.net.httpserver.HttpServer;
+import static esddesktop.Main.loginFrame;
+import static esddesktop.Main.newFrame;
+import java.awt.AWTEvent;
 
 import java.awt.AWTException;
 import java.awt.Image;
@@ -17,7 +20,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -28,11 +35,11 @@ import javax.swing.JOptionPane;
 public class Tray {
 
     public static TrayIcon trayIcon;
-    static boolean alive = true;
+    public static boolean alive = true;
     public static HttpServer server = Server.server;
     public static final int PORT = Server.PORT;
     public static SystemTray tray = SystemTray.getSystemTray();
-    private static String statusS = "";
+    static String statusS = "";
 
     public static void main(String args[]) throws IOException {
         startSystemTray(server);
@@ -46,10 +53,10 @@ public class Tray {
             String dir = System.getProperty("user.dir");
 //            
 //            ImageIcon img = new ImageIcon();
-            Image image = Toolkit.getDefaultToolkit().getImage(dir + "src/images/icon.png");
+            Image image = Toolkit.getDefaultToolkit().getImage(dir + "/src/images/icon.png");
 //            Image image = ImageIO.read(new File("/images/icon.png"));
 //            String path = new File("").getPath();
-//            System.out.println(path);
+//            System.out.println(dir);
 
             MouseListener mouseListener = new MouseListener() {
 
@@ -85,31 +92,32 @@ public class Tray {
             };
 
             ActionListener stopServer = (ActionEvent e) -> {
-                statusS = "Dead";
+
                 alive = false;
-                server.stop(PORT);
-
+//                server.stop(PORT);
                 System.out.println("Server Stopped at " + PORT);
-
             };
 
             ActionListener startServer = (ActionEvent e) -> {
-                server.start();
-                statusS = "Running";
+//                server.start();
+
+                alive = true;
                 System.out.println("Server Started at " + PORT);
 
             };
-            ActionListener restartServer = (ActionEvent e) -> {
+            ActionListener restaertService = (ActionEvent e) -> {
                 System.out.println("Restart Service " + PORT);
-                String args[] = null;
+
+            };
+            ActionListener restartServer = (ActionEvent e) -> {
+                String[] args = null;
                 MainFrame ser = new MainFrame();
                 ser.RemoveKey();
                 try {
-                    ser.setVisible(true);
+                    EsdDesktop.main(args);
                 } catch (Exception ex) {
-
+                    Logger.getLogger(Tray.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                server.stop(PORT);
 
             };
             ActionListener logServer = (ActionEvent e) -> {
@@ -140,21 +148,21 @@ public class Tray {
             restartService.addActionListener(restartServer);
             log.addActionListener(logServer);
             about.addActionListener(aboutServer);
-            if (alive) {
-                popup.add(status);
+            popup.add(status);
+
+            if (alive == true) {
+                status.setLabel("Status: " + "Running");
                 popup.add(stop);
-                popup.add(restartService);
-                popup.add(log);
-                popup.add(about);
-                popup.add(defaultItem);
+                popup.remove(start);
             } else {
-                popup.add(status);
+                popup.add("Status: " + "Dead");
                 popup.add(start);
-                popup.add(restartService);
-                popup.add(log);
-                popup.add(about);
-                popup.add(defaultItem);
+                popup.remove(stop);
             }
+            popup.add(restartService);
+            popup.add(log);
+            popup.add(about);
+            popup.add(defaultItem);
 
             trayIcon = new TrayIcon(image, "ESD Tray", popup);
 
@@ -162,11 +170,20 @@ public class Tray {
                 trayIcon.displayMessage("Action Event",
                         "An Action Event Has Been Performed!",
                         TrayIcon.MessageType.INFO);
+                if (alive) {
+                    statusS = "Running";
+                } else {
+                    statusS = "Dead";
+                }
             };
 
             trayIcon.setImageAutoSize(true);
             trayIcon.addActionListener(actionListener);
             trayIcon.addMouseListener(mouseListener);
+
+            trayIcon.addActionListener((ActionEvent ae) -> {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            });
 
             try {
                 tray.add(trayIcon);

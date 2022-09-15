@@ -13,6 +13,7 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import static esddesktop.Tray.alive;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -121,7 +122,9 @@ public class Server {
 
         server = HttpServer.create(new InetSocketAddress(PORT), 0);
         try {
-            server.createContext("/", new StartServerResponse());
+            System.out.println(alive);
+           while(alive){
+                server.createContext("/", new StartServerResponse());
             server.createContext("/esd", new RunESDDevice());
             server.createContext("/device", new RunDevice());
             server.createContext("/dtr", new RunDTRDevice());
@@ -133,6 +136,8 @@ public class Server {
             System.out.println("Server Started at " + PORT);
             String args[] = null;
             Tray.main(args);
+            break;
+           }
 
         } catch (IOException ex) {
             System.out.println(ex);

@@ -51,6 +51,7 @@ public class EsdDesktop {
     public static void main(String[] args) throws Exception {
         // TODO code application logic here
         MainFrame main = new MainFrame();
+
         if (checkInternetConnection()) {
 
             String key = main.CheckKey();
@@ -105,7 +106,7 @@ public class EsdDesktop {
                 }
             } else {
                 JOptionPane.showMessageDialog(frame, "Please reenter LicenseKey to Start Service again", "Error", JOptionPane.ERROR_MESSAGE);
-                MainFrame.main(args);
+                Main.main(args);
             }
 
         } else {
@@ -309,7 +310,7 @@ public class EsdDesktop {
 
                     System.out.println(id + "\t\t" + restName + "\t\t" + cityName + "\t\t"
                             + headers + "\t\t" + device + "\t\t" + requestdate + "\t\t" + requestdata
-                            + "\t\t" + responseType + "\t\t" + responseTime + responsedata+response );
+                            + "\t\t" + responseType + "\t\t" + responseTime + responsedata + response);
 
                     str.add(id + "\t\t" + restName + "\t\t" + cityName);
                 }
